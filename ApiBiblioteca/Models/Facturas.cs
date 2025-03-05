@@ -30,10 +30,5 @@ namespace ApiBiblioteca.Models
         [ForeignKey("Estado")]
         public int id_estado { get; set; }
 
-        public virtual Usuarios usuario { get; set; }
-        public virtual Estados metodoPago { get; set; }
-        public virtual Productos producto { get; set; }
-        public virtual Reservas reserva { get; set; }
-        public virtual Estados estado { get; set; }
     }
 }

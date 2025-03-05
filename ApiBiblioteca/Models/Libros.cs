@@ -5,8 +5,9 @@ namespace ApiBiblioteca.Models
 {
     public class Libros
     {
+
         [Key]
-        public int Id_libros { get; set; }
+        public int Id_libro { get; set; }
         public int Stock {  get; set; }
         public decimal precio_alquiler { get; set; }
         [ForeignKey("Autores")]
@@ -17,5 +18,6 @@ namespace ApiBiblioteca.Models
         public int Id_Review { get; set; }
         [ForeignKey("Estados")]
         public int Id_Estado { get; set; }
+
     }
 }
