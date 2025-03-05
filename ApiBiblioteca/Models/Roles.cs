@@ -13,8 +13,7 @@ namespace ApiBiblioteca.Models
         public string descripcion { get; set; }
 
         [ForeignKey("Estado")]
-        public int id_estado { get; set; }
+        public int Id_estado { get; set; }
 
-        public virtual Estados estado { get; set; }
     }
 }
