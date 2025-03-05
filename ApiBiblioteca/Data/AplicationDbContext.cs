@@ -1,4 +1,6 @@
 ﻿
+using System.Data;
+using ApiBiblioteca.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiBiblioteca.Data
@@ -15,7 +17,22 @@ namespace ApiBiblioteca.Data
 
         //Necesitamos que van hacer los set y gets.
         //La definicion de entidades y modelos
-        //public DbSet<Productos> Productos { get; set; }
+
+        //public DbSet<Roles> BIBLIOTECA_ROLE_TB {  get; set; }
+        //public DbSet<Usuarios> BIBLIOTECA_USUARIOS_TB {  get; set; }
+        //public DbSet<Generos> BIBLIOTECA_GENERO_TB { get; set; }
+        //public DbSet<Productos> BIBLIOTECA_PRODUCTOS_TB { get; set; }
+        //public DbSet<Pagos> BIBLIOTECA_METODO_PAGO_TB { get; set; }
+        //public DbSet<Reseñas> BIBLIOTECA_RESEÑA_TB { get; set; }
+        //public DbSet<Reclamos> BIBLIOTECA_RECLAMOS_TB { get; set; }
+        //public DbSet<Reservas> BIBLIOTECA_RESERVAS_TB { get; set; }
+        //public DbSet<Facturas> BIBLIOTECA_FACTURAS_TB { get; set; }
+
+
+        public DbSet<Libros> BIBLIOTECA_LIBROS_TB { get; set; }
+        public DbSet<Estados> BIBLIOTECA_ESTADO_TB { get; set; }
+        public DbSet<Autores> BIBLIOTECA_AUTOR_TB { get; set; }
+        public DbSet<Categorias> BIBLIOTECA_CATEGORIA_TB { get; set; }
 
         //Y aca agregamos todas las que necesitemos
         //Usuarios, roles, categorias, facturas
