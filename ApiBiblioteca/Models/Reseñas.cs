@@ -13,6 +13,8 @@ namespace ApiBiblioteca.Models
 
         [ForeignKey("Estados")]
         public int Id_Estado { get; set; }
+        [ForeignKey("Libros")]
+        public int Id_Libro { get; set; }
 
 
         [ForeignKey("Usuarios")]

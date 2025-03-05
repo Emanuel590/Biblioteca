@@ -66,42 +66,33 @@ namespace ApiBiblioteca.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<Libros>> ActualizarLibros(int id, Libros libro)
         {
-            if(libro == null)
+            if (libro == null)
             {
-                return BadRequest();
+                return BadRequest(new { mensaje = "No se encontró el libro" });
+            }
+
+            if (!_context.BIBLIOTECA_LIBROS_TB.Any(l => l.Id_libro == id))
+            {
+                return NotFound(new { mensaje = "No se encontró el libro" });
             }
 
             _context.Entry(libro).State = EntityState.Modified;
+
             try
             {
                 await _context.SaveChangesAsync();
             }
-            catch (Exception ex) 
+            catch (Exception)
             {
-                if (!_context.BIBLIOTECA_LIBROS_TB.Any(l => l.Id_libro == id))
-                {
-                    return NotFound
-                        (
-                            new
-                            {
-                                mensaje = "No se encontro el libro"
-                            }
-                        
-                        
-                        );
-                }
-                else
-                {
-                    throw;
-                }
-            
-            
+                return StatusCode(500, new { mensaje = "Error interno al actualizar el libro" });
             }
+
             return NoContent();
         }
 
+
         //Eliminar un Libro
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public async  Task<ActionResult> EliminarLibros(int id)
         {
             var libros = await _context.BIBLIOTECA_LIBROS_TB.FindAsync(id);
