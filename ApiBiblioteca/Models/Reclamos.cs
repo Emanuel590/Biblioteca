@@ -14,7 +14,7 @@ namespace ApiBiblioteca.Models
         [ForeignKey("Usuarios")]
         public int Id_Usuario { get; set; }
 
-        public string Reclamo { get; set; }
+        public string Descripcion { get; set; }
 
         [ForeignKey("Estados")]
         public int Id_Estado { get; set; }

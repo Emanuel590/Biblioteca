@@ -23,7 +23,7 @@ namespace ApiBiblioteca.Data
         public DbSet<Generos> BIBLIOTECA_GENERO_TB { get; set; }
         //public DbSet<Productos> BIBLIOTECA_PRODUCTOS_TB { get; set; }
         //public DbSet<Pagos> BIBLIOTECA_METODO_PAGO_TB { get; set; }
-        public DbSet<Reseñas> BIBLIOTECA_RESEÑA_TB { get; set; }
+        public DbSet<Resenas> BIBLIOTECA_RESENA_TB { get; set; }
         public DbSet<Reclamos> BIBLIOTECA_RECLAMOS_TB { get; set; }
         //public DbSet<Reservas> BIBLIOTECA_RESERVAS_TB { get; set; }
         public DbSet<Facturas> BIBLIOTECA_FACTURAS_TB { get; set; }
