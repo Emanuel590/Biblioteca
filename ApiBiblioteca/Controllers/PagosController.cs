@@ -3,57 +3,63 @@ using Microsoft.EntityFrameworkCore;
 using ApiBiblioteca.Data;
 using ApiBiblioteca.Models;
 
+
 namespace ApiBiblioteca.Controllers
 {
+
     [Route("/api/[controller]")]
     [ApiController]
-    public class FacturasController : ControllerBase
+
+    public class PagosController : ControllerBase
     {
         private readonly AplicationDbContext _context;
 
-        public FacturasController(AplicationDbContext context)
+        public PagosController(AplicationDbContext context)
         {
             _context = context;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Facturas>>> GetFacturas()
+        public async Task<ActionResult<IEnumerable<Pagos>>> GetPagos()
         {
-            return await _context.BIBLIOTECA_FACTURAS_TB.ToListAsync();
+            return await _context.BIBLIOTECA_METODO_PAGO_TB.ToListAsync();
         }
+
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Facturas>> GetFactura(int id)
+        public async Task<ActionResult<Pagos>> GetPagos(int id)
         {
-            var factura = await _context.BIBLIOTECA_FACTURAS_TB.FindAsync(id);
+            var pago = await _context.BIBLIOTECA_METODO_PAGO_TB.FindAsync(id);
 
-            if (factura == null)
+            if (pago == null)
             {
-                return NotFound(new { mensaje = "Factura no encontrada" });
+                return NotFound(new { mensaje = "Pago no encontrado" });
             }
 
-            return factura;
+            return pago;
         }
 
+
+
         [HttpPost]
-        public async Task<ActionResult<Facturas>> AddFactura(Facturas factura)
+        public async Task<ActionResult<Pagos>> AddPagos(Pagos pagos)
         {
-            _context.BIBLIOTECA_FACTURAS_TB.Add(factura);
+            _context.BIBLIOTECA_METODO_PAGO_TB.Add(pagos);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetFactura), new { id = factura.id_factura }, factura);
+            return CreatedAtAction(nameof(GetPagos), new { id = pagos.Id_metodo }, pagos);
         }
 
 
 
         [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateFactura(int id, Facturas factura)
+        public async Task<ActionResult> UpdatePagos(int id, Pagos pagos)
         {
-            if (id != factura.id_factura)
+            if (id != pagos.Id_metodo)
             {
                 return BadRequest(new { mensaje = "Los ID no coinciden" });
             }
 
-            _context.Entry(factura).State = EntityState.Modified;
+            _context.Entry(pagos).State = EntityState.Modified;
 
             try
             {
@@ -61,7 +67,7 @@ namespace ApiBiblioteca.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!_context.BIBLIOTECA_FACTURAS_TB.Any(f => f.id_factura == id))
+                if (!_context.BIBLIOTECA_METODO_PAGO_TB.Any(f => f.Id_metodo == id))
                 {
                     return NotFound(new { mensaje = "Factura no encontrada" });
                 }
@@ -77,16 +83,21 @@ namespace ApiBiblioteca.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteFactura(int id)
         {
-            var factura = await _context.BIBLIOTECA_FACTURAS_TB.FindAsync(id);
+            var pago = await _context.BIBLIOTECA_METODO_PAGO_TB.FindAsync(id);
 
-            if (factura == null)
+            if (pago == null)
             {
                 return NotFound(new { mensaje = "Factura no encontrada o ya eliminada" });
             }
 
-            _context.BIBLIOTECA_FACTURAS_TB.Remove(factura);
+            _context.BIBLIOTECA_METODO_PAGO_TB.Remove(pago);
             await _context.SaveChangesAsync();
             return NoContent();
         }
     }
+
+
+
+
 }
+
