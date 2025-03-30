@@ -7,6 +7,7 @@ namespace ApiBiblioteca.Models
     {
         [Key]
         public int Id_productos { get; set; }
+        public int Stock { get; set; }
         public string Nombre { get; set; }
         [ForeignKey("Categorias")]
         public int Id_categoria { get; set; }
