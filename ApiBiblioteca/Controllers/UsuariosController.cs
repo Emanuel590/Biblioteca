@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ApiBiblioteca.Data;
 using ApiBiblioteca.Models;
+using BCrypt.Net;
 
 namespace ApiBiblioteca.Controllers
 {
@@ -38,8 +39,11 @@ namespace ApiBiblioteca.Controllers
         [HttpPost]
         public async Task<ActionResult<Usuarios>> AddUsuario(Usuarios usuario)
         {
+            usuario.contra = BCrypt.Net.BCrypt.HashPassword(usuario.contra);
+
             _context.BIBLIOTECA_USUARIOS_TB.Add(usuario);
             await _context.SaveChangesAsync();
+
             return CreatedAtAction(nameof(GetUsuario), new { id = usuario.id_usuario }, usuario);
         }
 
