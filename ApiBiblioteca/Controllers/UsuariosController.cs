@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ApiBiblioteca.Data;
 using ApiBiblioteca.Models;
+using ApiBiblioteca.Services;  
 using BCrypt.Net;
 
 namespace ApiBiblioteca.Controllers
@@ -11,10 +12,12 @@ namespace ApiBiblioteca.Controllers
     public class UsuariosController : ControllerBase
     {
         private readonly AplicationDbContext _context;
+        private readonly JwtService _jwtService; // servicio JWT
 
-        public UsuariosController(AplicationDbContext context)
+        public UsuariosController(AplicationDbContext context, JwtService jwtService)
         {
             _context = context;
+            _jwtService = jwtService;
         }
 
         [HttpGet]
@@ -36,15 +39,44 @@ namespace ApiBiblioteca.Controllers
             return usuario;
         }
 
-        [HttpPost]
+        [HttpPost("register")]
         public async Task<ActionResult<Usuarios>> AddUsuario(Usuarios usuario)
         {
+            var existingUser = await _context.BIBLIOTECA_USUARIOS_TB
+                .FirstOrDefaultAsync(u => u.email == usuario.email);
+            if (existingUser != null)
+            {
+                return BadRequest(new { mensaje = "El correo electrónico ya está registrado" });
+            }
+
             usuario.contra = BCrypt.Net.BCrypt.HashPassword(usuario.contra);
 
             _context.BIBLIOTECA_USUARIOS_TB.Add(usuario);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetUsuario), new { id = usuario.id_usuario }, usuario);
+        }
+
+        [HttpPost("login")]
+        public async Task<ActionResult> Login([FromBody] LoginModel loginModel)
+        {
+            var usuario = await _context.BIBLIOTECA_USUARIOS_TB
+                .FirstOrDefaultAsync(u => u.email == loginModel.Email);
+
+            if (usuario == null || !BCrypt.Net.BCrypt.Verify(loginModel.Contra, usuario.contra))
+            {
+                return Unauthorized(new { mensaje = "Correo electrónico o contraseña incorrectos" });
+            }
+
+            // Generamos el token JWT
+            var token = _jwtService.GenerateToken(usuario.id_usuario, usuario.email, "Usuario");
+
+            return Ok(new
+            {
+                mensaje = "Inicio de sesión exitoso",
+                usuario = new { usuario.id_usuario, usuario.email },
+                token
+            });
         }
 
         [HttpPut("{id}")]
@@ -90,5 +122,11 @@ namespace ApiBiblioteca.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+    }
+
+    public class LoginModel
+    {
+        public string Email { get; set; }
+        public string Contra { get; set; }
     }
 }

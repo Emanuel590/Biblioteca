@@ -11,7 +11,7 @@ namespace ApiBiblioteca.Models
 
         public string nombre { get; set; }
 
-
+        [EmailAddress]
         public string email { get; set; }
 
         public int? codigo_postal { get; set; }
@@ -21,6 +21,7 @@ namespace ApiBiblioteca.Models
 
         public int cedula { get; set; }
 
+        [Required]
         public string contra { get; set; }
 
         [ForeignKey("Role")]
