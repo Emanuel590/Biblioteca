@@ -14,12 +14,12 @@ namespace ApiBiblioteca.Models
         [EmailAddress]
         public string email { get; set; }
 
-        public int? codigo_postal { get; set; }
+        public long? codigo_postal { get; set; }
 
   
-        public int telefono { get; set; }
+        public long telefono { get; set; }
 
-        public int cedula { get; set; }
+        public long cedula { get; set; }
 
         [Required]
         public string contra { get; set; }
