@@ -4,6 +4,7 @@ using ApiBiblioteca.Data;
 using ApiBiblioteca.Models;
 using ApiBiblioteca.Services;  
 using BCrypt.Net;
+using System.Security.Claims;
 
 namespace ApiBiblioteca.Controllers
 {
@@ -23,7 +24,44 @@ namespace ApiBiblioteca.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Usuarios>>> GetUsuarios()
         {
-            return await _context.BIBLIOTECA_USUARIOS_TB.ToListAsync();
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var principal = _jwtService.ValidarToken(token);
+            if (principal == null)
+            {
+                return Unauthorized(new { mensaje = "Token inválido o expirado" });
+            }
+
+            // Obtener el email desde el token
+            var email = principal.FindFirst(ClaimTypes.Email)?.Value;
+            if (email == null)
+            {
+                return Unauthorized(new { mensaje = "No se pudo extraer el email del token" });
+            }
+
+            // Buscar el usuario en la base de datos
+            var usuario = await _context.BIBLIOTECA_USUARIOS_TB.FirstOrDefaultAsync(u => u.email == email);
+            if (usuario == null)
+            {
+                return NotFound(new { mensaje = "Usuario no encontrado" });
+            }
+
+            // Validar segun el rol y devolver solo los usuarios necesarios
+            switch (usuario.id_role)
+            {
+                case 1: // ADMINISTRADOR
+                    var todosUsuarios = await _context.BIBLIOTECA_USUARIOS_TB.ToListAsync();
+                    return Ok(todosUsuarios);
+
+                case 2: // CLIENTE
+                    return Ok(new List<Usuarios> { usuario });
+
+                case 3: // EMPLEADO
+                    var empleadosYClientes = await _context.BIBLIOTECA_USUARIOS_TB.Where(u => u.id_role == 2 || u.id_role == 3).ToListAsync();
+                    return Ok(empleadosYClientes);
+
+                default:
+                    return Unauthorized(new { mensaje = "No tiene permisos para acceder a esta información" });
+            }
         }
 
         [HttpGet("{id}")]
@@ -38,6 +76,43 @@ namespace ApiBiblioteca.Controllers
 
             return usuario;
         }
+        [HttpPost("create")]
+        public async Task<ActionResult<Usuarios>> CrearUsuario([FromBody] Usuarios usuario)
+        {
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            var principal = _jwtService.ValidarToken(token);
+            if (principal == null)
+            {
+                return Unauthorized(new { mensaje = "Token inválido o expirado" });
+            }
+
+            var email = principal.FindFirst(ClaimTypes.Email)?.Value;
+            if (email == null)
+            {
+                return Unauthorized(new { mensaje = "No se pudo extraer el email del token" });
+            }
+
+            var usuarioAdmin = await _context.BIBLIOTECA_USUARIOS_TB.FirstOrDefaultAsync(u => u.email == email);
+            if (usuarioAdmin == null || usuarioAdmin.id_role != 1) 
+            {
+                return Unauthorized(new { mensaje = "Solo un administrador puede crear usuarios." });
+            }
+
+            var existingUser = await _context.BIBLIOTECA_USUARIOS_TB
+                .FirstOrDefaultAsync(u => u.email == usuario.email);
+            if (existingUser != null)
+            {
+                return BadRequest(new { mensaje = "El correo electrónico ya está registrado" });
+            }
+
+            usuario.contra = BCrypt.Net.BCrypt.HashPassword(usuario.contra);
+            _context.BIBLIOTECA_USUARIOS_TB.Add(usuario);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetUsuario), new { id = usuario.id_usuario }, usuario);
+        }
+
+
 
         [HttpPost("register")]
         public async Task<ActionResult<Usuarios>> AddUsuario(Usuarios usuario)
