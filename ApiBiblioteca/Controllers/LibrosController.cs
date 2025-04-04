@@ -11,7 +11,7 @@ namespace ApiBiblioteca.Controllers
     {
         private readonly AplicationDbContext _context;
         //Constructor de la clase
-        public LibrosController(AplicationDbContext context)
+        public LibrosController(AplicationDbContext context, IConfiguration config)
         {
             _context = context;
         }
@@ -43,23 +43,46 @@ namespace ApiBiblioteca.Controllers
 
         //Crear un nuevo libro
         [HttpPost]
-        public async Task<ActionResult<Libros>> AgregarProductos(Libros libro)
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<Libros>> AgregarLibros([FromForm] Libros libro)
         {
-            _context.BIBLIOTECA_LIBROS_TB.Add(libro);
-            await _context.SaveChangesAsync();
 
-            return
-                CreatedAtAction(
+            string imgFolder = Path.Combine(Directory.GetCurrentDirectory(), "img");
+
+            var extension = Path.GetExtension(libro.foto.FileName);
+            var fileName = $"{Guid.NewGuid()}{extension}";
+
+            string fullPath = Path.Combine(imgFolder, fileName);
+
+            try
+            {
+
+                using (FileStream newFile = System.IO.File.Create(fullPath))
+                {
+                    await libro.foto.CopyToAsync(newFile);
+                    await newFile.FlushAsync();
+                }
+
+
+                libro.foto = null;
+                libro.FotoPath = $"https://localhost:7003/img/{fileName}";
+
+                _context.BIBLIOTECA_LIBROS_TB.Add(libro);
+                await _context.SaveChangesAsync();
+
+                return CreatedAtAction(
                     nameof(ObtenerLibros),
-                    new
-                    {
-                        mensaje = "Libro creado",
-                        id = libro.Id_libro
-                    },
-
-                       libro);
-
+                    new { mensaje = "Libro creado", id = libro.Id_libro },
+                    libro);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
+
+
+
 
 
         //Actualizar el Libro
