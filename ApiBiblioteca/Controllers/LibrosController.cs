@@ -41,6 +41,46 @@ namespace ApiBiblioteca.Controllers
         }
 
 
+        [HttpGet]
+        [Route("MayorAMenor")]
+        public async Task<ActionResult<IEnumerable<Libros>>> OrdenarMayorAMenor()
+        {
+            var librosMayorMenor = await _context.BIBLIOTECA_LIBROS_TB
+                .OrderByDescending(l => l.precio_alquiler)
+                .ToListAsync();
+
+            return Ok(librosMayorMenor);
+        }
+
+
+        [HttpGet]
+        [Route("MenorAMayor")]
+        public async Task<ActionResult<IEnumerable<Libros>>> OrdenarMenorAMayor()
+        {
+            var librosMenorMayor = await _context.BIBLIOTECA_LIBROS_TB
+                .OrderBy(l => l.precio_alquiler)
+                .ToListAsync();
+
+            return Ok(librosMenorMayor);
+        }
+
+
+        [HttpGet("Genero/{idGenero}")]
+        public async Task<ActionResult<IEnumerable<Libros>>> ObtenerLibroGenero(int idGenero)
+        {
+            var librosGenero = await _context.BIBLIOTECA_LIBROS_TB
+                .Where(g => g.Id_Genero == idGenero)
+                .ToListAsync();
+
+            if (librosGenero == null || !librosGenero.Any())
+                return NotFound("No se encontraron libros con ese género.");
+
+            return Ok(librosGenero);
+        }
+
+
+
+
         //Crear un nuevo libro
         [HttpPost]
         [Consumes("multipart/form-data")]

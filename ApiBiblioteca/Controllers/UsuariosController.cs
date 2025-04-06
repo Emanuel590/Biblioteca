@@ -76,43 +76,7 @@ namespace ApiBiblioteca.Controllers
 
             return usuario;
         }
-        [HttpPost("create")]
-        public async Task<ActionResult<Usuarios>> CrearUsuario([FromBody] Usuarios usuario)
-        {
-            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-            var principal = _jwtService.ValidarToken(token);
-            if (principal == null)
-            {
-                return Unauthorized(new { mensaje = "Token inválido o expirado" });
-            }
-
-            var email = principal.FindFirst(ClaimTypes.Email)?.Value;
-            if (email == null)
-            {
-                return Unauthorized(new { mensaje = "No se pudo extraer el email del token" });
-            }
-
-            var usuarioAdmin = await _context.BIBLIOTECA_USUARIOS_TB.FirstOrDefaultAsync(u => u.email == email);
-            if (usuarioAdmin == null || usuarioAdmin.id_role != 1) 
-            {
-                return Unauthorized(new { mensaje = "Solo un administrador puede crear usuarios." });
-            }
-
-            var existingUser = await _context.BIBLIOTECA_USUARIOS_TB
-                .FirstOrDefaultAsync(u => u.email == usuario.email);
-            if (existingUser != null)
-            {
-                return BadRequest(new { mensaje = "El correo electrónico ya está registrado" });
-            }
-
-            usuario.contra = BCrypt.Net.BCrypt.HashPassword(usuario.contra);
-            _context.BIBLIOTECA_USUARIOS_TB.Add(usuario);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetUsuario), new { id = usuario.id_usuario }, usuario);
-        }
-
-
+        
 
         [HttpPost("register")]
         public async Task<ActionResult<Usuarios>> AddUsuario(Usuarios usuario)
@@ -149,7 +113,7 @@ namespace ApiBiblioteca.Controllers
             return Ok(new
             {
                 mensaje = "Inicio de sesión exitoso",
-                usuario = new { usuario.id_usuario, usuario.email },
+                usuario = new { usuario.id_usuario, usuario.email, usuario.id_role },
                 token
             });
         }
