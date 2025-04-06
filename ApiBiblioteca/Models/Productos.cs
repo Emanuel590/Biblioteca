@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace ApiBiblioteca.Models
 {
@@ -14,8 +15,11 @@ namespace ApiBiblioteca.Models
 
         [ForeignKey("Estados")]
         public int ID_ESTADO { get; set; }
+        public string FotoPath { get; set; } = string.Empty;
 
-
+        [NotMapped]
+        [JsonIgnore]
+        public IFormFile foto { get; set; }
 
     }
 }

@@ -14,7 +14,7 @@ namespace ApiBiblioteca.Controllers
 
         private readonly AplicationDbContext _context;
 
-        public ProductosController(AplicationDbContext context)
+        public ProductosController(AplicationDbContext context, IConfiguration config)
         {
             _context = context;
         }
@@ -46,18 +46,44 @@ namespace ApiBiblioteca.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult<Productos>> AddProductos(Productos productos)
+        [Consumes("multipart/form-data")]
+
+        public async Task<ActionResult<Productos>> AddProductos([FromForm] Productos productos)
         {
-            _context.BIBLIOTECA_PRODUCTOS_TB.Add(productos);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(
-                nameof(GetProductos),
-                new
+            string imgFolder = Path.Combine(Directory.GetCurrentDirectory(), "img");
+
+            var extension = Path.GetExtension(productos.foto.FileName);
+            var fileName = $"{Guid.NewGuid()}{extension}";
+
+            string fullPath = Path.Combine(imgFolder, fileName);
+            try
+            {
+                using (FileStream newFile = System.IO.File.Create(fullPath))
                 {
-                    id = productos.Id_productos,
-                },
-                productos
-            );
+                    await productos.foto.CopyToAsync(newFile);
+                    await newFile.FlushAsync();
+                }
+
+                productos.foto = null;
+                productos.FotoPath = $"https://localhost:7003/img/{fileName}";
+
+                _context.BIBLIOTECA_PRODUCTOS_TB.Add(productos);
+                await _context.SaveChangesAsync();
+
+
+                return CreatedAtAction(
+                    nameof(GetProductos),
+                    new
+                    {
+                        mensaje = "produto creado",
+                        id = productos.Id_productos
+                    },
+                    productos);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
 
@@ -67,8 +93,13 @@ namespace ApiBiblioteca.Controllers
             if (productos == null)
             {
 
-                return BadRequest();
+                return BadRequest(new { mensaje = "No se encontró el producto" });
             }
+
+                if (!_context.BIBLIOTECA_PRODUCTOS_TB.Any(i => i.Id_productos == id))
+                {
+                    return NotFound(new{mensaje = "el productos no ha sido encontrada" });
+                }
 
             _context.Entry(productos).State = EntityState.Modified;
             try
@@ -77,21 +108,8 @@ namespace ApiBiblioteca.Controllers
             }
             catch (Exception ex)
             {
+                return StatusCode(500, new { mensaje = "Error interno al actualizar el producto" });
 
-                if (!_context.BIBLIOTECA_PRODUCTOS_TB.Any(i => i.Id_productos == id))
-                {
-                    return NotFound(
-                        new
-                        {
-                            mensaje = "el productos no ha sido encontrada"
-                        }
-                    );
-                }
-                else
-                {
-
-                    throw;
-                }
             }
             return NoContent();
         }
