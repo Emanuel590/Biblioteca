@@ -19,11 +19,11 @@ namespace ApiBiblioteca.Models
         [ForeignKey("Estados")]
         public int Id_Estado { get; set; }
 
-        public string FotoPath { get; set; } = string.Empty;
+        public string? FotoPath { get; set; } = string.Empty;
 
         [NotMapped]
         [JsonIgnore]
-        public IFormFile foto { get; set; }
+        public IFormFile? foto { get; set; }
 
     }
 }

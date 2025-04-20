@@ -127,18 +127,48 @@ namespace ApiBiblioteca.Controllers
 
         //Actualizar el Libro
         [HttpPut("{id}")]
-        public async Task<ActionResult<Libros>> ActualizarLibros(int id, Libros libro)
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<Libros>> ActualizarLibros(int id, [FromForm] Libros libro)
         {
             if (libro == null)
             {
                 return BadRequest(new { mensaje = "No se encontró el libro" });
             }
 
-            if (!_context.BIBLIOTECA_LIBROS_TB.Any(l => l.Id_libro == id))
+
+            var libroExistente = await _context.BIBLIOTECA_LIBROS_TB.FirstOrDefaultAsync(l => l.Id_libro == id);
+            if (libroExistente == null)
             {
                 return NotFound(new { mensaje = "No se encontró el libro" });
             }
 
+
+            if (libro.foto != null)
+            {
+                string imgFolder = Path.Combine(Directory.GetCurrentDirectory(), "img");
+                var extension = Path.GetExtension(libro.foto.FileName);
+                var fileName = $"{Guid.NewGuid()}{extension}";
+                string fullPath = Path.Combine(imgFolder, fileName);
+
+                using (FileStream newFile = System.IO.File.Create(fullPath))
+                {
+                    await libro.foto.CopyToAsync(newFile);
+                    await newFile.FlushAsync();
+                }
+                libro.FotoPath = $"https://localhost:7003/img/{fileName}";
+            }
+            else
+            {
+                libro.FotoPath = libroExistente.FotoPath;
+            }
+
+
+            libro.Id_libro = id;
+
+            // Esto lo que hace es desanexar la entidad existente para evitar conflictos de tracking con el id
+            _context.Entry(libroExistente).State = EntityState.Detached;
+
+            // Ahora, adjuntar la entidad entrante como modificada
             _context.Entry(libro).State = EntityState.Modified;
 
             try
@@ -152,6 +182,29 @@ namespace ApiBiblioteca.Controllers
 
             return NoContent();
         }
+
+
+        [HttpPut("estado/{id}")]
+        public async Task<ActionResult<Libros>> ActualizarEstadoLibro(int id, int estado)
+        {
+            var libroExistente = await _context.BIBLIOTECA_LIBROS_TB.FindAsync(id);
+            if(libroExistente == null)
+            {
+                return NotFound();
+            }
+
+            libroExistente.Id_Estado = estado;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { mensaje = "Error interno al actualizar el libro" });
+            }
+            return NoContent();
+        }
+
 
 
         //Eliminar un Libro
