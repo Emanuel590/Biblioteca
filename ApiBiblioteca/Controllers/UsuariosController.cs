@@ -118,6 +118,8 @@ namespace ApiBiblioteca.Controllers
             });
         }
 
+
+
         [HttpPut("{id}")]
         public async Task<ActionResult<Usuarios>> UpdateUsuario(int id, Usuarios usuario)
         {
