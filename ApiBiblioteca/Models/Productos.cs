@@ -21,7 +21,7 @@ namespace ApiBiblioteca.Models
 
         [NotMapped]
         [JsonIgnore]
-        public IFormFile foto { get; set; }
+        public IFormFile? foto { get; set; }
 
     }
 }

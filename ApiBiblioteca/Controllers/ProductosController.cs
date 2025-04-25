@@ -89,7 +89,6 @@ namespace ApiBiblioteca.Controllers
         //EDIT 
         [HttpPut("{id}")]
         [Consumes("multipart/form-data")]
-
         public async Task<ActionResult<Productos>> UpdateProductos(int id, [FromForm] Productos productos)
         {
             if (productos == null)
@@ -126,7 +125,7 @@ namespace ApiBiblioteca.Controllers
 
             _context.Entry(productoExiste).State = EntityState.Detached;
 
-            _context.Entry(productoExiste).State = EntityState.Modified;
+            _context.Entry(productos).State = EntityState.Modified;
 
             try
             {
