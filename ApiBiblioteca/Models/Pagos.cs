@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace ApiBiblioteca.Models
 {
@@ -14,8 +15,22 @@ namespace ApiBiblioteca.Models
         [ForeignKey("Estados")]
         public int ID_ESTADO { get; set; }
 
-        public ICollection<Facturas> Facturas { get; set; }
 
+        [BindNever]
+        public ICollection<Facturas> Facturas { get; set; } = new List<Facturas>();
+
+        [NotMapped]
+        public string TarjetaEnmascarada
+        {
+            get
+            {
+                var tarjetaStr = N_Tarjeta.ToString();
+                return tarjetaStr.Length >= 4
+                    ? "**** **** **** " + tarjetaStr.Substring(tarjetaStr.Length - 4)
+                    : "**** (inválida)";
+            }
+        }
 
     }
+
 }
