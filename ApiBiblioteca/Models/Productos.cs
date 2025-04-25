@@ -7,7 +7,7 @@ namespace ApiBiblioteca.Models
     public class Productos
     {
         [Key]
-        public int Id_productos { get; set; }
+        public int  Id_productos { get; set; }
         public int Stock { get; set; }
         public string Nombre { get; set; }
         public decimal PrecioProducto { get; set; } 
