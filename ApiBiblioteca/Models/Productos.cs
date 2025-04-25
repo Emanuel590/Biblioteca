@@ -23,5 +23,7 @@ namespace ApiBiblioteca.Models
         [JsonIgnore]
         public IFormFile? foto { get; set; }
 
+        public ICollection<Facturas> Facturas { get; set; }
+
     }
 }
