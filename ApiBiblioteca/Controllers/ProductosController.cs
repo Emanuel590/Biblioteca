@@ -67,7 +67,7 @@ namespace ApiBiblioteca.Controllers
                 productos.foto = null;
                 productos.FotoPath = $"https://localhost:7003/img/{fileName}";
 
-                _context.BIBLIOTECA_PRODUCTOS_TB.Add(productos);
+                _context.BIBLIOTECA_PRODUCTOS_TB.Add(productos); //---
                 await _context.SaveChangesAsync();
 
 
@@ -86,35 +86,84 @@ namespace ApiBiblioteca.Controllers
             }
         }
 
-
+        //EDIT 
         [HttpPut("{id}")]
-        public async Task<ActionResult<Productos>> UpdateProductos(int id, Productos productos)
+        [Consumes("multipart/form-data")]
+        public async Task<ActionResult<Productos>> UpdateProductos(int id, [FromForm] Productos productos)
         {
             if (productos == null)
             {
-
                 return BadRequest(new { mensaje = "No se encontró el producto" });
             }
 
-                if (!_context.BIBLIOTECA_PRODUCTOS_TB.Any(i => i.Id_productos == id))
+            var productoExiste = await _context.BIBLIOTECA_PRODUCTOS_TB.FirstOrDefaultAsync(p => p.Id_productos == id);
+                if (productoExiste == null)
                 {
                     return NotFound(new{mensaje = "el productos no ha sido encontrada" });
                 }
 
+                if (productos.foto != null)
+            {
+                string imgFolder = Path.Combine(Directory.GetCurrentDirectory(), "img");
+                var extension = Path.GetExtension(productos.foto.FileName);
+                var fileName = $"{Guid.NewGuid()}{extension}";
+                string fullPath = Path.Combine(imgFolder, fileName);
+
+                using (FileStream newFile = System.IO.File.Create(fullPath))
+                {
+                    await productos.foto.CopyToAsync(newFile);
+                    await newFile.FlushAsync();
+                }
+                productos.FotoPath = $"https://localhost:7003/img/{fileName}";
+            }
+            else
+            {
+                productos.FotoPath = productoExiste.FotoPath;
+            }
+
+            productos.Id_productos = id;
+
+            _context.Entry(productoExiste).State = EntityState.Detached;
+
             _context.Entry(productos).State = EntityState.Modified;
+
             try
             {
                 await _context.SaveChangesAsync();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new { mensaje = "Error interno al actualizar el producto" });
+                return StatusCode(500, new { mensaje = "Error interno al actualizar el libro" });
+            }
 
+            return NoContent();
+        }
+
+        //EDIT ESTADO 
+        [HttpPut("estado/{id}")]
+        public async Task<ActionResult<Productos>> ActualizarEstadoProducto(int id, int estado)
+        {
+            var productoExisteId = await _context.BIBLIOTECA_PRODUCTOS_TB.FindAsync(id);
+            if (productoExisteId == null)
+            {
+                return NotFound();
+            }
+
+            productoExisteId.ID_ESTADO = estado;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                return StatusCode(500, new { mensaje = "error interno al actualizar el id "});
             }
             return NoContent();
         }
 
 
+
+        //ELIMINAR
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteProductos(int id)
         {

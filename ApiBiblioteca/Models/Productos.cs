@@ -10,6 +10,8 @@ namespace ApiBiblioteca.Models
         public int Id_productos { get; set; }
         public int Stock { get; set; }
         public string Nombre { get; set; }
+        public decimal PrecioProducto { get; set; } 
+
         [ForeignKey("Categorias")]
         public int Id_categoria { get; set; }
 
@@ -19,7 +21,7 @@ namespace ApiBiblioteca.Models
 
         [NotMapped]
         [JsonIgnore]
-        public IFormFile foto { get; set; }
+        public IFormFile? foto { get; set; }
 
         public ICollection<Facturas> Facturas { get; set; }
 
