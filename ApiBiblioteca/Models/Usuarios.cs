@@ -30,6 +30,7 @@ namespace ApiBiblioteca.Models
         [ForeignKey("Estado")]
         public int id_estado { get; set; }
 
+        public ICollection<Facturas> Facturas { get; set; }
 
     }
 }

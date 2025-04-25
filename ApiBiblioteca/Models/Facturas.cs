@@ -22,13 +22,18 @@ namespace ApiBiblioteca.Models
         public int id_metodo { get; set; }
 
         [ForeignKey("Producto")]
-        public int id_producto { get; set; }
+        public int? id_producto { get; set; }
 
         [ForeignKey("Reserva")]
-        public int id_reservas { get; set; }
+        public int? id_reservas { get; set; }
 
         [ForeignKey("Estado")]
         public int id_estado { get; set; }
 
+        public Usuarios? Usuario { get; set; }
+        public Pagos? MetodoPago { get; set; }
+        public Productos? Producto { get; set; }
+        public Reservas? Reserva { get; set; }
+        public Estados? Estado { get; set; }
     }
 }

@@ -88,5 +88,64 @@ namespace ApiBiblioteca.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        [HttpGet("admin/facturas")]
+        public IActionResult ObtenerFacturas()
+        {
+            var facturas = _context.BIBLIOTECA_FACTURAS_TB
+                .Include(f => f.Usuario)  
+                .Include(f => f.MetodoPago)  
+                .Include(f => f.Producto)  
+                .Include(f => f.Reserva)  
+                .Include(f => f.Estado)  
+                .Select(f => new {
+                    f.id_factura,
+                    f.fecha_factura,
+                    f.total,
+                    USUARIO = f.Usuario.nombre,
+                    PRODUCTO = f.Producto.Nombre,
+                    METODO_PAGO = f.MetodoPago.Metodo_Pago,
+                    RESERVA = f.Reserva.Id_reservas,
+                    ESTADO = f.Estado.Descripcion,  
+                }).ToList();
+
+            return Ok(facturas);
+        }
+
+        [HttpGet("usuarios")]
+        public IActionResult GetUsuarios()
+        {
+            var usuarios = _context.BIBLIOTECA_USUARIOS_TB.ToList(); 
+            return Ok(usuarios);
+        }
+
+        [HttpGet("productos")]
+        public IActionResult GetProductos()
+        {
+            var productos = _context.BIBLIOTECA_PRODUCTOS_TB.ToList();  
+            return Ok(productos);
+        }
+
+        [HttpGet("metodosPago")]
+        public IActionResult GetMetodosPago()
+        {
+            var metodosPago = _context.BIBLIOTECA_METODO_PAGO_TB.ToList();  
+            return Ok(metodosPago);
+        }
+
+        [HttpGet("estados")]
+        public IActionResult GetEstados()
+        {
+            var estados = _context.BIBLIOTECA_ESTADO_TB.ToList();  
+            return Ok(estados);
+        }
+        [HttpGet("reserva")]
+
+        public IActionResult GetReserva()
+        {
+            var reserva = _context.BIBLIOTECA_RESERVAS_TB.ToList();
+            return Ok(reserva);
+        }
+
     }
 }
