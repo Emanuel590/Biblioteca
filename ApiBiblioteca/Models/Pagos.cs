@@ -12,6 +12,9 @@ namespace ApiBiblioteca.Models
         public string Entidad_Bancaria { get; set; }
         public long N_Tarjeta { get; set; }
 
+        [ForeignKey("Usuarios")]
+        public int Id_usuario { get; set; }
+
         [ForeignKey("Estados")]
         public int ID_ESTADO { get; set; }
 

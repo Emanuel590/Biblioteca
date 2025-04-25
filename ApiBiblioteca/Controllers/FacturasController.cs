@@ -104,7 +104,7 @@ namespace ApiBiblioteca.Controllers
                     f.total,
                     USUARIO = f.Usuario.nombre,
                     PRODUCTO = f.Producto.Nombre,
-                    METODO_PAGO = f.MetodoPago.Metodo_Pago,
+                    METODO_PAGO = f.MetodoPago.N_Tarjeta,
                     RESERVA = f.Reserva.Id_reservas,
                     ESTADO = f.Estado.Descripcion,  
                 }).ToList();

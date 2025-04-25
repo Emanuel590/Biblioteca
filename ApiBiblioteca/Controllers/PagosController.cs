@@ -2,6 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using ApiBiblioteca.Data;
 using ApiBiblioteca.Models;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace ApiBiblioteca.Controllers
 {
@@ -10,27 +15,53 @@ namespace ApiBiblioteca.Controllers
     public class PagosController : ControllerBase
     {
         private readonly AplicationDbContext _context;
+
         public PagosController(AplicationDbContext context)
             => _context = context;
 
+        // Obtener el id_usuario desde el token de autenticación
+        private int GetUserIdFromToken()
+        {
+            var claimsIdentity = User.Identity as ClaimsIdentity;
+            var claim = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier); // El id_usuario puede ser almacenado en el token como NameIdentifier
+            return claim != null ? int.Parse(claim.Value) : 0;
+        }
+
+        // Endpoint modificado para filtrar por id_usuario desde el token
         [HttpGet]
         public async Task<IActionResult> GetPagos()
         {
+            int idUsuario = GetUserIdFromToken(); // Obtener el id_usuario del token
+
+            if (idUsuario == 0)
+            {
+                return Unauthorized(new { mensaje = "No autorizado. El usuario no está autenticado." });
+            }
+
+            // Filtrar pagos por id_usuario del token
             var lista = await _context.BIBLIOTECA_METODO_PAGO_TB
-                .Select(p => new {
+                .Where(p => p.Id_usuario == idUsuario)
+                .Select(p => new
+                {
                     p.Id_metodo,
                     p.Metodo_Pago,
                     p.Entidad_Bancaria,
-                    N_Tarjeta = p.TarjetaEnmascarada,  
-                    p.ID_ESTADO
+                    N_Tarjeta = p.TarjetaEnmascarada,
+                    p.ID_ESTADO,
+                    p.Id_usuario
                 })
                 .ToListAsync();
+
+            if (lista.Count == 0)
+            {
+                return NotFound(new { mensaje = "No se encontraron pagos para este usuario" });
+            }
 
             return Ok(lista);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetPagos(int id)
+        public async Task<IActionResult> GetPago(int id)
         {
             var p = await _context.BIBLIOTECA_METODO_PAGO_TB.FindAsync(id);
             if (p == null)
@@ -42,14 +73,21 @@ namespace ApiBiblioteca.Controllers
                 p.Metodo_Pago,
                 p.Entidad_Bancaria,
                 N_Tarjeta = p.TarjetaEnmascarada,
-                p.ID_ESTADO
+                p.ID_ESTADO,
+                p.Id_usuario
             };
             return Ok(dto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddPagos(Pagos pagos)
+        public async Task<IActionResult> AddPago(Pagos pagos)
         {
+            // Verificar que Id_usuario esté asignado correctamente
+            if (pagos.Id_usuario == 0)
+            {
+                return BadRequest(new { mensaje = "El campo Id_usuario es obligatorio." });
+            }
+
             _context.BIBLIOTECA_METODO_PAGO_TB.Add(pagos);
             await _context.SaveChangesAsync();
 
@@ -59,16 +97,23 @@ namespace ApiBiblioteca.Controllers
                 pagos.Metodo_Pago,
                 pagos.Entidad_Bancaria,
                 N_Tarjeta = pagos.TarjetaEnmascarada,
-                pagos.ID_ESTADO
+                pagos.ID_ESTADO,
+                pagos.Id_usuario
             };
-            return CreatedAtAction(nameof(GetPagos), new { id = pagos.Id_metodo }, dto);
+            return CreatedAtAction(nameof(GetPago), new { id = pagos.Id_metodo }, dto);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePagos(int id, Pagos pagos)
+        public async Task<IActionResult> UpdatePago(int id, Pagos pagos)
         {
             if (id != pagos.Id_metodo)
                 return BadRequest(new { mensaje = "Los ID no coinciden" });
+
+            // Verificar que Id_usuario esté asignado correctamente antes de la actualización
+            if (pagos.Id_usuario == 0)
+            {
+                return BadRequest(new { mensaje = "El campo Id_usuario es obligatorio." });
+            }
 
             _context.Entry(pagos).State = EntityState.Modified;
 
@@ -89,7 +134,8 @@ namespace ApiBiblioteca.Controllers
                 pagos.Metodo_Pago,
                 pagos.Entidad_Bancaria,
                 N_Tarjeta = pagos.TarjetaEnmascarada,
-                pagos.ID_ESTADO
+                pagos.ID_ESTADO,
+                pagos.Id_usuario
             };
             return Ok(dto);
         }
