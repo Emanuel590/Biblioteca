@@ -163,6 +163,40 @@ namespace ApiBiblioteca.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+
+        [HttpGet("verificar")]
+        public async Task<ActionResult> Verificar()
+        {
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+
+            var principal = _jwtService.ValidarToken(token);
+            if (principal == null)
+            {
+                return Unauthorized(new { mensaje = "Token inválido o expirado" });
+            }
+
+            var email = principal.FindFirst(ClaimTypes.Email)?.Value;
+            if (email == null)
+            {
+                return Unauthorized(new { mensaje = "No se pudo extraer el email del token" });
+            }
+
+            var usuario = await _context.BIBLIOTECA_USUARIOS_TB
+                .FirstOrDefaultAsync(u => u.email == email);
+
+            if (usuario == null)
+            {
+                return NotFound(new { mensaje = "Usuario no encontrado" });
+            }
+
+            return Ok(new
+            {
+                usuario.id_usuario,
+                usuario.email,
+                usuario.id_role
+            });
+        }
     }
 
     public class LoginModel
